@@ -1,0 +1,3 @@
+sj_exemple:
+    resource: "@SJExampleBundle/Resources/config/routing.yml"
+    prefix:   /
