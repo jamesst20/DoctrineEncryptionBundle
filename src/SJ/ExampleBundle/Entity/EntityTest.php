@@ -27,7 +27,7 @@ class EntityTest
      *
      * @ORM\Column(name="firstName", type="string", length=255)
      *
-     * @Encrypt(decryptData=false, useGetterAndSetter=true)
+     * @Encrypt(decryptData=false)
      */
     private $firstName;
 
@@ -36,7 +36,7 @@ class EntityTest
      *
      * @ORM\Column(name="lastName", type="string", length=255)
      *
-     * @Encrypt(decryptData=true, useGetterAndSetter=true)
+     * @Encrypt(decryptData=true)
      */
     private $lastName;
 

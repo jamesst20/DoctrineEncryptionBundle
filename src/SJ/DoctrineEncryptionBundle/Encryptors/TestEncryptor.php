@@ -13,7 +13,7 @@ class TestEncryptor implements SJEncryptorInterface
      */
     public function __construct($secretKey)
     {
-        
+
     }
 
     /**
@@ -24,7 +24,7 @@ class TestEncryptor implements SJEncryptorInterface
      */
     public function encryptData($plainText)
     {
-        return strtoupper($plainText);
+        // TODO: Implement encryptData() method.
     }
 
     /**
@@ -35,6 +35,6 @@ class TestEncryptor implements SJEncryptorInterface
      */
     public function decryptData($encryptedData)
     {
-        return strtolower($encryptedData);
+        // TODO: Implement decryptData() method.
     }
 }

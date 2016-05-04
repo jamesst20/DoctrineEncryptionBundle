@@ -29,6 +29,7 @@ class SJDoctrineEncryptionExtension extends Extension
             $config['encryptor_class'] = TestEncryptor::class;
         }
 
+        //Set default parameters value
         if(empty($config['encryption_key'])) {
             if($container->hasParameter('secret')) {
                 $config['encryption_key'] = $container->getParameter('secret');

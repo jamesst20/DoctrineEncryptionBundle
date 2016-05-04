@@ -15,7 +15,6 @@ use InvalidArgumentException;
 class Encrypt
 {
     private $decryptData = false;
-    private $useGetterAndSetter = false;
 
     public function __construct($options)
     {
@@ -30,18 +29,10 @@ class Encrypt
         if(!is_bool($this->decryptData)) {
             throw new InvalidArgumentException('The property decryptData must be a boolean');
         }
-
-        if(!is_bool($this->useGetterAndSetter)) {
-            throw new InvalidArgumentException('The property useGetterAndSetter must be a boolean');
-        }
     }
 
     public function getShouldDecryptData() {
         return $this->decryptData;
-    }
-
-    public function getUseGetterAndSetter() {
-        return $this->useGetterAndSetter;
     }
 
 }

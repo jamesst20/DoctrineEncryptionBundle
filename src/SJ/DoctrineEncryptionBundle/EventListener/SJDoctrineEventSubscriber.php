@@ -12,6 +12,8 @@ use ReflectionProperty;
 use RuntimeException;
 use SJ\DoctrineEncryptionBundle\Annotation\Encrypt;
 use SJ\DoctrineEncryptionBundle\Encryptors\SJEncryptorInterface;
+use SJ\DoctrineEncryptionBundle\Event\SJEncryptEvent;
+use SJ\DoctrineEncryptionBundle\Event\SJEvents;
 use SJ\DoctrineEncryptionBundle\Services\EncryptorContainer;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
@@ -61,36 +63,29 @@ class SJDoctrineEventSubscriber implements EventSubscriber
     private function processEncryptAnnotationInEntity($entity, $isEncryptOperation)
     {
 
-        $propertiesToEncrypt = $this->getEncryptedProperties($entity);
-        /** @var ReflectionProperty $propertyToEncrypt */
-        foreach ($propertiesToEncrypt as $propertyToEncrypt) {
+        $propertiesToProcess = $this->getEncryptedProperties($entity);
+        /** @var ReflectionProperty $propertyToProcess */
+        foreach ($propertiesToProcess as $propertyToProcess) {
             /** @var Encrypt $encryptAnnotation */
-            $encryptAnnotation = $this->annotationReader->getPropertyAnnotation($propertyToEncrypt, Encrypt::class);
+            $encryptAnnotation = $this->annotationReader->getPropertyAnnotation($propertyToProcess, Encrypt::class);
 
             if (!$isEncryptOperation && !$encryptAnnotation->getShouldDecryptData()) continue;
 
-            if ($encryptAnnotation->getUseGetterAndSetter()) {
-                $setterMethodName = 'set' . ucfirst($propertyToEncrypt->getName());
-                $getterMethodName = 'get' . ucfirst($propertyToEncrypt->getName());
-                if (method_exists($entity, $getterMethodName) && method_exists($entity, $setterMethodName)) {
-                    $setterMethod = new ReflectionMethod($entity, $setterMethodName);
-                    $getterMethod = new ReflectionMethod($entity, $getterMethodName);
-                    if ($isEncryptOperation) {
-                        $setterMethod->invoke($entity, $this->encryptor->encryptData($getterMethod->invoke($entity)));
-                    } else {
-                        $setterMethod->invoke($entity, $this->encryptor->decryptData($getterMethod->invoke($entity)));
-                    }
-                } else {
-                    throw new RuntimeException(sprintf("The setter $setterMethodName() or getter $getterMethodName() for property %s in class %s doesn't exist.", $propertyToEncrypt->getName(), get_class($entity)));
-                }
+            $propertyToProcess->setAccessible(true);
+            if ($isEncryptOperation) {
+                /** Dispatch the preEncrypt event */
+                $this->eventDispatcher->dispatch(SJEvents::onPreEncryptEvent, new SJEncryptEvent($this->encryptor, $entity));
+                /** Do the encryption */
+                $propertyToProcess->setValue($entity, $this->encryptor->encryptData($propertyToProcess->getValue($entity)));
+                /** Dispatch the postEncrypt event */
+                $this->eventDispatcher->dispatch(SJEvents::onPostEncryptEvent, new SJEncryptEvent($this->encryptor, $entity));
             } else {
-                $propertyToEncrypt->setAccessible(true);
-                if ($isEncryptOperation) {
-                    $propertyToEncrypt->setValue($entity, $this->encryptor->encryptData($propertyToEncrypt->getValue($entity)));
-                } else {
-                    $propertyToEncrypt->setValue($entity, $this->encryptor->decryptData($propertyToEncrypt->getValue($entity)));
-                }
-
+                /** Dispatch the preDecrypt event */
+                $this->eventDispatcher->dispatch(SJEvents::onPreDecryptEvent, new SJEncryptEvent($this->encryptor, $entity));
+                /** Do the decryption */
+                $propertyToProcess->setValue($entity, $this->encryptor->decryptData($propertyToProcess->getValue($entity)));
+                /** Dispatch the postDecrypt event */
+                $this->eventDispatcher->dispatch(SJEvents::onPostDecryptEvent, new SJEncryptEvent($this->encryptor, $entity));
             }
         }
     }
@@ -99,6 +94,7 @@ class SJDoctrineEventSubscriber implements EventSubscriber
     {
         $properties = array();
         $reflectionObject = new ReflectionObject($entity);
+        //TODO: Does it includes parent properties?
         foreach ($reflectionObject->getProperties() as $reflectionProperty) {
             $propertyEncryptAnnotation = $this->annotationReader->getPropertyAnnotation($reflectionProperty, Encrypt::class);
 

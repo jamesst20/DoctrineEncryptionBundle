@@ -1,8 +1,4 @@
 services:
-#    sj_doctrine_encryption.example:
-#        class: SJ\DoctrineEncryptionBundle\Example
-#        arguments: ["@service_id", "plain_value", %parameter%]
-
     sj_doctrine_encryption.encryptor_container:
         class: SJ\DoctrineEncryptionBundle\Services\EncryptorContainer
         arguments: ["%sj_doctrine_encryption.encryptor_class%", "%sj_doctrine_encryption.encryption_key%"]
