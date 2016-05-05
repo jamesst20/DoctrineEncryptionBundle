@@ -1,3 +1,0 @@
-sj_exemple_homepage:
-    path:     /
-    defaults: { _controller: SJExampleBundle:Default:index }

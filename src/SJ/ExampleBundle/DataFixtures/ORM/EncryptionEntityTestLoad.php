@@ -6,9 +6,9 @@ namespace SJ\ExampleBundle\DataFixtures\ORM;
 
 use Doctrine\Common\DataFixtures\FixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
-use SJ\ExampleBundle\Entity\EntityTest;
+use SJ\ExampleBundle\Entity\EncryptionEntityTest;
 
-class EntityTestLoad implements FixtureInterface
+class EncryptionEntityTestLoad implements FixtureInterface
 {
 
     /**
@@ -18,11 +18,10 @@ class EntityTestLoad implements FixtureInterface
      */
     public function load(ObjectManager $manager)
     {
-        $entity = new EntityTest();
-        $entity->setFirstName('James');
-        $entity->setLastName('St-Pierre');
-        $entity->setDescription('The king of the king');
-        $entity->setDate(new \DateTime('now'));
+        $entity = new EncryptionEntityTest();
+        $entity->setFieldToEncryptAndDecrypt('EncryptAndDecrypt!');
+        $entity->setFieldToEncryptOnly('EncryptOnly!');
+        $entity->setFieldNotEncrypted('ThisShouldNotBeEncryptedAtAll');
         $manager->persist($entity);
         $manager->flush();
     }

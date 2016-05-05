@@ -4,5 +4,5 @@
 /phpunit.xml
 !/var
 /var/*
-/vendor/
+/vendor/*
 /web/bundles/
