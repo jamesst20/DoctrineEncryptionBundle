@@ -25,7 +25,7 @@ class EncryptionEntityTest
     /**
      * @var string
      *
-     * @ORM\Column(name="fieldToEncryptAndDecrypt", type="string", length=255)
+     * @ORM\Column(name="fieldToEncryptAndDecrypt", type="string", length=255, nullable=true)
      *
      * @Encrypt(decryptData=true)
      */
@@ -34,7 +34,7 @@ class EncryptionEntityTest
     /**
      * @var string
      *
-     * @ORM\Column(name="fieldToEncryptOnly", type="string", length=255)
+     * @ORM\Column(name="fieldToEncryptOnly", type="string", length=255, nullable=true)
      *
      * @Encrypt(decryptData=false)
      */
@@ -43,10 +43,10 @@ class EncryptionEntityTest
     /**
      * @var string
      *
-     * @ORM\Column(name="fieldNotEncrypted", type="string", length=255)
+     * @ORM\Column(name="fieldNotEncrypted", type="string", length=255, nullable=true)
      */
     private $fieldNotEncrypted;
-    
+
     /**
      * Get id
      *
@@ -119,6 +119,8 @@ class EncryptionEntityTest
     public function setFieldNotEncrypted($fieldNotEncrypted)
     {
         $this->fieldNotEncrypted = $fieldNotEncrypted;
+
+        return $this;
     }
 }
 
