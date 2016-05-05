@@ -27,6 +27,8 @@ class SJDoctrineEventSubscriber implements EventSubscriber
     /** @var SJEncryptorInterface $encryptor The encryptor used */
     private $encryptor;
 
+    private static $ENC_PREFIX = '<ENC>';
+
     public function __construct(EncryptorContainer $encryptorContainer, $eventDispatcher)
     {
         $this->annotationReader = new AnnotationReader();
@@ -66,24 +68,33 @@ class SJDoctrineEventSubscriber implements EventSubscriber
         $propertiesToProcess = $this->getEncryptedProperties($entity);
         /** @var ReflectionProperty $propertyToProcess */
         foreach ($propertiesToProcess as $propertyToProcess) {
+            $propertyToProcess->setAccessible(true);
+
             /** @var Encrypt $encryptAnnotation */
             $encryptAnnotation = $this->annotationReader->getPropertyAnnotation($propertyToProcess, Encrypt::class);
 
             if (!$isEncryptOperation && !$encryptAnnotation->getShouldDecryptData()) continue;
 
-            $propertyToProcess->setAccessible(true);
+            if(!is_string($propertyToProcess->getValue($entity)))
+                throw new RuntimeException(sprintf('Failed to encrypt propery %s in class %s. Encryption currently only supports string in entity.', $propertyToProcess->getName(), $propertyToProcess->getDeclaringClass()->getName()));
+
+            //Make sure we are not decrypting non encrypted data
+            if(!$isEncryptOperation && !$this->endsWith($propertyToProcess->getValue($entity), SJDoctrineEventSubscriber::$ENC_PREFIX)) continue;
+            //Make sure it's not already encrypted.
+            if($isEncryptOperation && $this->endsWith($propertyToProcess->getValue($entity), SJDoctrineEventSubscriber::$ENC_PREFIX)) continue;
+
             if ($isEncryptOperation) {
                 /** Dispatch the preEncrypt event */
                 $this->eventDispatcher->dispatch(SJEvents::onPreEncryptEvent, new SJEncryptEvent($this->encryptor, $entity));
                 /** Do the encryption */
-                $propertyToProcess->setValue($entity, $this->encryptor->encryptData($propertyToProcess->getValue($entity)));
+                $propertyToProcess->setValue($entity, $this->encryptor->encryptData($propertyToProcess->getValue($entity)) . SJDoctrineEventSubscriber::$ENC_PREFIX);
                 /** Dispatch the postEncrypt event */
                 $this->eventDispatcher->dispatch(SJEvents::onPostEncryptEvent, new SJEncryptEvent($this->encryptor, $entity));
             } else {
                 /** Dispatch the preDecrypt event */
                 $this->eventDispatcher->dispatch(SJEvents::onPreDecryptEvent, new SJEncryptEvent($this->encryptor, $entity));
                 /** Do the decryption */
-                $propertyToProcess->setValue($entity, $this->encryptor->decryptData($propertyToProcess->getValue($entity)));
+                $propertyToProcess->setValue($entity, $this->encryptor->decryptData(substr($propertyToProcess->getValue($entity), 0, strlen($propertyToProcess->getValue($entity)) - strlen(SJDoctrineEventSubscriber::$ENC_PREFIX))));
                 /** Dispatch the postDecrypt event */
                 $this->eventDispatcher->dispatch(SJEvents::onPostDecryptEvent, new SJEncryptEvent($this->encryptor, $entity));
             }
@@ -105,6 +116,9 @@ class SJDoctrineEventSubscriber implements EventSubscriber
         return $properties;
     }
 
+    function endsWith($text, $find) {
+        return $find === "" || (($temp = strlen($text) - strlen($find)) >= 0 && strpos($text, $find, $temp) !== false);
+    }
 
     /**
      * Returns an array of events this subscriber wants to listen to.

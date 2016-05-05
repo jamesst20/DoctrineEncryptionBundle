@@ -47,6 +47,12 @@ class EntityTest
      */
     private $description;
 
+    /**
+     * @var \DateTime
+     *
+     * @ORM\Column(name="time", type="datetime")
+     */
+    private $date;
 
     /**
      * Get id
@@ -128,6 +134,22 @@ class EntityTest
     public function getDescription()
     {
         return $this->description;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getDate()
+    {
+        return $this->date;
+    }
+
+    /**
+     * @param \DateTime $date
+     */
+    public function setDate($date)
+    {
+        $this->date = $date;
     }
 }
 

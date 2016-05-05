@@ -22,6 +22,7 @@ class EntityTestLoad implements FixtureInterface
         $entity->setFirstName('James');
         $entity->setLastName('St-Pierre');
         $entity->setDescription('The king of the king');
+        $entity->setDate(new \DateTime('now'));
         $manager->persist($entity);
         $manager->flush();
     }

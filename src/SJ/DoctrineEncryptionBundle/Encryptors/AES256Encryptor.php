@@ -1,10 +1,14 @@
 <?php
 
+
 namespace SJ\DoctrineEncryptionBundle\Encryptors;
 
 
-class TestEncryptor implements SJEncryptorInterface
+class AES256Encryptor implements SJEncryptorInterface
 {
+    private $key;
+    private $iv;
+
 
     /**
      * SJEncryptorInterface constructor.
@@ -13,7 +17,8 @@ class TestEncryptor implements SJEncryptorInterface
      */
     public function __construct($secretKey)
     {
-
+        $this->key = md5($secretKey);
+        $this->iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
     }
 
     /**
@@ -24,7 +29,7 @@ class TestEncryptor implements SJEncryptorInterface
      */
     public function encryptData($plainText)
     {
-        // TODO: Implement encryptData() method.
+        return base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $this->key, $plainText, MCRYPT_MODE_ECB, $this->iv));
     }
 
     /**
@@ -35,6 +40,6 @@ class TestEncryptor implements SJEncryptorInterface
      */
     public function decryptData($encryptedData)
     {
-        // TODO: Implement decryptData() method.
+        return mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $this->key, base64_decode($encryptedData), MCRYPT_MODE_ECB, $this->iv);
     }
 }

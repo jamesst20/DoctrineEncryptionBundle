@@ -3,7 +3,7 @@
 namespace SJ\DoctrineEncryptionBundle\DependencyInjection;
 
 use RuntimeException;
-use SJ\DoctrineEncryptionBundle\Encryptors\TestEncryptor;
+use SJ\DoctrineEncryptionBundle\Encryptors\AES256Encryptor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -26,7 +26,7 @@ class SJDoctrineEncryptionExtension extends Extension
 
         //Set default parameters value
         if(empty($config['encryptor_class'])) {
-            $config['encryptor_class'] = TestEncryptor::class;
+            $config['encryptor_class'] = AES256Encryptor::class;
         }
 
         //Set default parameters value
