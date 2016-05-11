@@ -29,7 +29,7 @@ class AES256Encryptor implements SJEncryptorInterface
      */
     public function encryptData($plainText)
     {
-        return base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $this->key, $plainText, MCRYPT_MODE_ECB, $this->iv));
+        return trim(base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $this->key, $plainText, MCRYPT_MODE_ECB, $this->iv)));
     }
 
     /**
@@ -40,6 +40,6 @@ class AES256Encryptor implements SJEncryptorInterface
      */
     public function decryptData($encryptedData)
     {
-        return mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $this->key, base64_decode($encryptedData), MCRYPT_MODE_ECB, $this->iv);
+        return trim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $this->key, base64_decode($encryptedData), MCRYPT_MODE_ECB, $this->iv));
     }
 }
