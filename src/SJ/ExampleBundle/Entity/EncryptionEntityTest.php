@@ -11,7 +11,7 @@ use SJ\DoctrineEncryptionBundle\Annotation\Encrypt;
  * @ORM\Table(name="encryption_entity_test")
  * @ORM\Entity(repositoryClass="SJ\ExampleBundle\Repository\EncryptionEntityTestRepository")
  */
-class EncryptionEntityTest
+class EncryptionEntityTest extends ParentEntity
 {
     /**
      * @var int

@@ -6,6 +6,7 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Events;
+use ReflectionClass;
 use ReflectionMethod;
 use ReflectionObject;
 use ReflectionProperty;
@@ -75,13 +76,13 @@ class SJDoctrineEventSubscriber implements EventSubscriber
 
             if (!$isEncryptOperation && !$encryptAnnotation->getShouldDecryptData()) continue;
 
-            if(!is_string($propertyToProcess->getValue($entity)))
+            if (!is_string($propertyToProcess->getValue($entity)))
                 throw new RuntimeException(sprintf('Failed to encrypt propery %s in class %s. Encryption currently only supports string in entity.', $propertyToProcess->getName(), $propertyToProcess->getDeclaringClass()->getName()));
 
             //Make sure we are not decrypting non encrypted data
-            if(!$isEncryptOperation && !$this->endsWith($propertyToProcess->getValue($entity), SJDoctrineEventSubscriber::$ENC_SUFFIX)) continue;
+            if (!$isEncryptOperation && !$this->endsWith($propertyToProcess->getValue($entity), SJDoctrineEventSubscriber::$ENC_SUFFIX)) continue;
             //Make sure it's not already encrypted.
-            if($isEncryptOperation && $this->endsWith($propertyToProcess->getValue($entity), SJDoctrineEventSubscriber::$ENC_SUFFIX)) continue;
+            if ($isEncryptOperation && $this->endsWith($propertyToProcess->getValue($entity), SJDoctrineEventSubscriber::$ENC_SUFFIX)) continue;
 
             if ($isEncryptOperation) {
                 /** Dispatch the preEncrypt event */
@@ -104,19 +105,23 @@ class SJDoctrineEventSubscriber implements EventSubscriber
     private function getEncryptedProperties($entity)
     {
         $properties = array();
-        $reflectionObject = new ReflectionObject($entity);
+        $reflectionClass = new ReflectionClass($entity);
         //TODO: Does it includes parent properties?
-        foreach ($reflectionObject->getProperties() as $reflectionProperty) {
-            $propertyEncryptAnnotation = $this->annotationReader->getPropertyAnnotation($reflectionProperty, Encrypt::class);
+        do {
+            foreach ($reflectionClass->getProperties() as $reflectionProperty) {
+                $propertyEncryptAnnotation = $this->annotationReader->getPropertyAnnotation($reflectionProperty, Encrypt::class);
 
-            if ($propertyEncryptAnnotation != null) {
-                $properties[] = $reflectionProperty;
+                if ($propertyEncryptAnnotation != null) {
+                    $properties[] = $reflectionProperty;
+                }
             }
-        }
+        } while (($reflectionClass = $reflectionClass->getParentClass()) != null);
+
         return $properties;
     }
 
-    private function endsWith($text, $find) {
+    private function endsWith($text, $find)
+    {
         return $find === "" || (($temp = strlen($text) - strlen($find)) >= 0 && strpos($text, $find, $temp) !== false);
     }
 

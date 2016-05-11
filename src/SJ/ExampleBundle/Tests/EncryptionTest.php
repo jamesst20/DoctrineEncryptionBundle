@@ -27,13 +27,14 @@ class EncryptionTest extends KernelTestCase
         $this->em->close();
     }
 
-    public function testEncryptorAnnotationShouldEncryptDataOnAllPreEvents() {
+    public function testEncryptorAnnotationShouldEncryptDataOnAllPreEvents()
+    {
         $value = 'value';
 
         $eventSubscriber = new SJDoctrineEventSubscriber(new EncryptorContainer(AES256Encryptor::class, 'secret_key'), static::$kernel->getContainer()->get('event_dispatcher'));
 
-        $entity1 = (new EncryptionEntityTest())->setFieldToEncryptOnly($value)->setFieldToEncryptAndDecrypt($value)->setFieldNotEncrypted($value);
-        $entity2 = (new EncryptionEntityTest())->setFieldToEncryptOnly($value)->setFieldToEncryptAndDecrypt($value)->setFieldNotEncrypted($value);
+        $entity1 = $this->setEntityValue(new EncryptionEntityTest(), $value);
+        $entity2 = $this->setEntityValue(new EncryptionEntityTest(), $value);
 
         $eventSubscriber->prePersist(new LifecycleEventArgs($entity1, static::$kernel->getContainer()->get('doctrine.orm.entity_manager')));
         $eventSubscriber->preUpdate(new LifecycleEventArgs($entity2, static::$kernel->getContainer()->get('doctrine.orm.entity_manager')));
@@ -51,7 +52,8 @@ class EncryptionTest extends KernelTestCase
     /**
      * @depends testEncryptorAnnotationShouldEncryptDataOnAllPreEvents
      */
-    public function testEncryptorAnnotationShouldDecryptDataOnAllPostEvents(array $args) {
+    public function testEncryptorAnnotationShouldDecryptDataOnAllPostEvents(array $args)
+    {
         $value = 'value';
         $eventSubscriber = $args[0];
         $encryptedEntity = $args[1];
@@ -65,7 +67,7 @@ class EncryptionTest extends KernelTestCase
         $eventSubscriber->postPersist(new LifecycleEventArgs($entity2, static::$kernel->getContainer()->get('doctrine.orm.entity_manager')));
         $eventSubscriber->postUpdate(new LifecycleEventArgs($entity3, static::$kernel->getContainer()->get('doctrine.orm.entity_manager')));
 
-        foreach([$entity1, $entity2, $entity3] as $entity) {
+        foreach ([$entity1, $entity2, $entity3] as $entity) {
             $this->assertEquals($value, $entity->getFieldToEncryptAndDecrypt());
             $this->assertNotEquals($encryptedEntity->getFieldToEncryptAndDecrypt(), $entity->getFieldToEncryptAndDecrypt());
             $this->assertEquals($encryptedEntity->getFieldToEncryptOnly(), $entity->getFieldToEncryptOnly());
@@ -78,13 +80,27 @@ class EncryptionTest extends KernelTestCase
         }
     }
 
-    public function testDoubleEncryptionShouldNotReEncrypt() {
+    public function testEncryptorAnnotationShouldEncryptPrivatePropertiesOfParentClass()
+    {
         $value = 'value';
 
         $eventSubscriber = new SJDoctrineEventSubscriber(new EncryptorContainer(AES256Encryptor::class, 'secret_key'), static::$kernel->getContainer()->get('event_dispatcher'));
 
-        $entity1 = (new EncryptionEntityTest())->setFieldToEncryptOnly($value)->setFieldToEncryptAndDecrypt($value)->setFieldNotEncrypted($value);
-        $entity2 = (new EncryptionEntityTest())->setFieldToEncryptOnly($value)->setFieldToEncryptAndDecrypt($value)->setFieldNotEncrypted($value);
+        $entity = (new EncryptionEntityTest())->setFieldToEncryptOnly($value)->setFieldToEncryptAndDecrypt($value)->setFieldNotEncrypted($value)->setParentProperty($value);
+
+        $eventSubscriber->prePersist(new LifecycleEventArgs($entity, static::$kernel->getContainer()->get('doctrine.orm.entity_manager')));
+
+        $this->assertNotEquals($value, $entity->getParentProperty());
+    }
+
+    public function testDoubleEncryptionShouldNotReEncrypt()
+    {
+        $value = 'value';
+
+        $eventSubscriber = new SJDoctrineEventSubscriber(new EncryptorContainer(AES256Encryptor::class, 'secret_key'), static::$kernel->getContainer()->get('event_dispatcher'));
+
+        $entity1 = $this->setEntityValue(new EncryptionEntityTest(), $value);
+        $entity2 = $this->setEntityValue(new EncryptionEntityTest(), $value);
 
         $eventSubscriber->prePersist(new LifecycleEventArgs($entity1, static::$kernel->getContainer()->get('doctrine.orm.entity_manager')));
         $eventSubscriber->prePersist(new LifecycleEventArgs($entity2, static::$kernel->getContainer()->get('doctrine.orm.entity_manager')));
@@ -94,5 +110,13 @@ class EncryptionTest extends KernelTestCase
         $this->assertEquals($entity1->getFieldToEncryptAndDecrypt(), $entity2->getFieldToEncryptAndDecrypt());
     }
 
-    
+    /**
+     * @param EncryptionEntityTest $entity
+     * @param $value
+     * @return EncryptionEntityTest
+     */
+    private function setEntityValue(EncryptionEntityTest $entity, $value) {
+        return $entity->setFieldToEncryptOnly($value)->setFieldToEncryptAndDecrypt($value)->setFieldNotEncrypted($value)->setParentProperty($value);
+    }
+
 }
