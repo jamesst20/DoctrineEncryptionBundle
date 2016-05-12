@@ -106,7 +106,6 @@ class SJDoctrineEventSubscriber implements EventSubscriber
     {
         $properties = array();
         $reflectionClass = new ReflectionClass($entity);
-        //TODO: Does it includes parent properties?
         do {
             foreach ($reflectionClass->getProperties() as $reflectionProperty) {
                 $propertyEncryptAnnotation = $this->annotationReader->getPropertyAnnotation($reflectionProperty, Encrypt::class);
