@@ -63,9 +63,8 @@ class SJDoctrineEventSubscriber implements EventSubscriber
     }
 
 
-    private function processEncryptAnnotationInEntity($entity, $isEncryptOperation)
+    public function processEncryptAnnotationInEntity($entity, $isEncryptOperation, $force = false)
     {
-
         $propertiesToProcess = $this->getEncryptedProperties($entity);
         /** @var ReflectionProperty $propertyToProcess */
         foreach ($propertiesToProcess as $propertyToProcess) {
@@ -74,10 +73,12 @@ class SJDoctrineEventSubscriber implements EventSubscriber
             /** @var Encrypt $encryptAnnotation */
             $encryptAnnotation = $this->annotationReader->getPropertyAnnotation($propertyToProcess, Encrypt::class);
 
-            if (!$isEncryptOperation && !$encryptAnnotation->getShouldDecryptData()) continue;
+            if (!$isEncryptOperation && !$encryptAnnotation->getShouldDecryptData() &&!$force) continue;
+
+            if(is_null($propertyToProcess->getValue($entity))) continue;
 
             if (!is_string($propertyToProcess->getValue($entity)))
-                throw new RuntimeException(sprintf('Failed to encrypt propery %s in class %s. Encryption currently only supports string in entity.', $propertyToProcess->getName(), $propertyToProcess->getDeclaringClass()->getName()));
+                throw new RuntimeException(sprintf('Failed to encrypt property %s in class %s. Encryption currently only supports string in entity.', $propertyToProcess->getName(), $propertyToProcess->getDeclaringClass()->getName()));
 
             //Make sure we are not decrypting non encrypted data
             if (!$isEncryptOperation && !$this->endsWith($propertyToProcess->getValue($entity), SJDoctrineEventSubscriber::$ENC_SUFFIX)) continue;
