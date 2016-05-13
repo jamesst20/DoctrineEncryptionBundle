@@ -28,23 +28,31 @@ class SJDoctrineEventSubscriber implements EventSubscriber
     /** @var SJEncryptorInterface $encryptor The encryptor used */
     private $encryptor;
 
+    /** @var bool Prevent encryption : Used by the decrypt database command */
+    private $encryptionEnabled;
+
     public static $ENC_SUFFIX = '<ENC>';
 
     public function __construct(EncryptorContainer $encryptorContainer, $eventDispatcher)
     {
         $this->annotationReader = new AnnotationReader();
         $this->eventDispatcher = $eventDispatcher;
+        $this->encryptionEnabled = true;
         $this->encryptor = $encryptorContainer->getEncryptor();
     }
 
     public function prePersist(LifecycleEventArgs $event)
     {
-        $this->processEncryptAnnotationInEntity($event->getEntity(), true);
+        if($this->encryptionEnabled) {
+            $this->processEncryptAnnotationInEntity($event->getEntity(), true);
+        }
     }
 
     public function preUpdate(LifecycleEventArgs $event)
     {
-        $this->processEncryptAnnotationInEntity($event->getEntity(), true);
+        if($this->encryptionEnabled) {
+            $this->processEncryptAnnotationInEntity($event->getEntity(), true);
+        }
     }
 
     public function postPersist(LifecycleEventArgs $event)
@@ -140,5 +148,23 @@ class SJDoctrineEventSubscriber implements EventSubscriber
             Events::postLoad
         );
     }
+    
+    public function setEncryptionEnabled($encryptionEnabled)
+    {
+        $this->encryptionEnabled = $encryptionEnabled;
+    }
 
+    /**
+     * Replace the encryptor of the service that has been injected
+     * 
+     * @param $encryptor SJEncryptorInterface the new encryptor
+     * @return SJEncryptorInterface the previous encryptor
+     */
+    public function replaceEncryptor($encryptor) {
+        $prevEncryptor = $this->encryptor;
+        
+        $this->encryptor = $encryptor;
+        
+        return $prevEncryptor;
+    }
 }

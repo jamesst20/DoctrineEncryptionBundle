@@ -5,7 +5,7 @@ namespace SJ\ExampleBundle\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use SJ\DoctrineEncryptionBundle\Annotation\Encrypt;
 
-class ParentEntity
+abstract class ParentEntity
 {
     /**
      * @var string
