@@ -6,15 +6,17 @@ use SJ\DoctrineEncryptionBundle\Encryptors\AES256Encryptor;
 use SJ\DoctrineEncryptionBundle\EventListener\SJDoctrineEventSubscriber;
 use SJ\DoctrineEncryptionBundle\Services\EncryptorContainer;
 use SJ\ExampleBundle\Entity\EncryptionEntityTest;
-use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use SJ\ExampleBundle\Tests\Abstracts\FixtureAwareKernelTestCase;
 
-class EncryptionTest extends KernelTestCase
+class EncryptionTest extends FixtureAwareKernelTestCase
 {
     /** @var \Doctrine\ORM\EntityManager */
     private $em;
 
     public function setUp()
     {
+        parent::setUp();
+
         self::bootKernel();
 
         $this->em = static::$kernel->getContainer()->get('doctrine')->getManager();
@@ -108,6 +110,17 @@ class EncryptionTest extends KernelTestCase
 
         $this->assertEquals($entity1->getFieldToEncryptOnly(), $entity2->getFieldToEncryptOnly());
         $this->assertEquals($entity1->getFieldToEncryptAndDecrypt(), $entity2->getFieldToEncryptAndDecrypt());
+    }
+    
+    public function testDoctrineEventAreAutomaticallyTriggered() {
+        $value = 'value';
+        
+        $entity = $this->setEntityValue(new EncryptionEntityTest(), $value);
+        
+        $this->em->persist($entity);
+        $this->em->flush();
+        
+        $this->assertContains('<ENC>', $entity->getFieldToEncryptOnly());
     }
 
     /**
