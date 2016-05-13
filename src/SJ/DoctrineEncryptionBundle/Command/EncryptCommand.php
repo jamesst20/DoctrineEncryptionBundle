@@ -35,6 +35,7 @@ class EncryptCommand extends ContainerAwareCommand
         $sjDoctrineEventSubscriber = $this->getContainer()->get('sj_doctrine_encryption.doctrine_subscriber');
 
         $previousEncryptor = $sjDoctrineEventSubscriber->replaceEncryptor(new $encryptorClass($this->getContainer()->getParameter('sj_doctrine_encryption.encryption_key')));
+        $sjDoctrineEventSubscriber->setEncryptionEnabled(true); //Just in case it was for some reason previously disabled
 
         /** @var ClassMetadata[] $allMeta */
         $allMeta = $em->getMetadataFactory()->getAllMetadata();

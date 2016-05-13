@@ -19,9 +19,9 @@ class EncryptionEntityTestLoad implements FixtureInterface
     public function load(ObjectManager $manager)
     {
         $entity = new EncryptionEntityTest();
-        $entity->setFieldToEncryptAndDecrypt('EncryptAndDecrypt!');
-        $entity->setFieldToEncryptOnly('EncryptOnly!');
-        $entity->setFieldNotEncrypted('ThisShouldNotBeEncryptedAtAll');
+        $entity->setFieldToEncryptAndDecrypt('FieldToEncryptAndDecrypt');
+        $entity->setFieldToEncryptOnly('FieldToEncryptOnly');
+        $entity->setFieldNotEncrypted('FieldNotEncrypted');
         $manager->persist($entity);
         $manager->flush();
     }
