@@ -1,0 +1,10 @@
+services:
+    sj_doctrine_encryption.encryptor_container:
+        class: SJ\DoctrineEncryptionBundle\Services\EncryptorContainer
+        arguments: ["%sj_doctrine_encryption.encryptor_class%", "%sj_doctrine_encryption.encryption_key%"]
+
+    sj_doctrine_encryption.doctrine_subscriber:
+        class:  SJ\DoctrineEncryptionBundle\EventListener\SJDoctrineEventSubscriber
+        arguments: ["@sj_doctrine_encryption.encryptor_container", "@event_dispatcher"]
+        tags:
+            - { name: doctrine.event_subscriber }
