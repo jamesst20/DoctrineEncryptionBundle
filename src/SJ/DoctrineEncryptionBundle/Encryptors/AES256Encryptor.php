@@ -18,7 +18,7 @@ class AES256Encryptor implements SJEncryptorInterface
     public function __construct($secretKey)
     {
         $this->key = md5($secretKey);
-        $this->iv_size = mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB);
+        $this->iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('aes-256-cbc'));
     }
 
     /**
@@ -29,7 +29,7 @@ class AES256Encryptor implements SJEncryptorInterface
      */
     public function encryptData($plainText)
     {
-        return trim(base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $this->key, $plainText, MCRYPT_MODE_ECB, $this->iv)));
+        return trim(base64_encode(openssl_encrypt($plainText, 'aes-256-cbc', $this->key, 0, $this->iv)  . ':' . base64_encode($this->iv)));
     }
 
     /**
@@ -40,6 +40,7 @@ class AES256Encryptor implements SJEncryptorInterface
      */
     public function decryptData($encryptedData)
     {
-        return trim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $this->key, base64_decode($encryptedData), MCRYPT_MODE_ECB, $this->iv));
+        $parts = explode(':', base64_decode($encryptedData));
+        return trim(openssl_decrypt($parts[0], 'aes-256-cbc', $this->key, 0, base64_decode($parts[1])));
     }
 }
